@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Janith Gamage | Fashion & Lifestyle Visuals</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;1,300;1,400&family=Playfair+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        midnight: '#100c0b',
+                        mulberry: '#421b1a',
+                        oak: '#a89e8d',
+                        fog: '#c5c2bc',
+                        leather: '#8c7156',
+                        cream: '#f2f0eb'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root { 
+            --cursor-border: #421b1a;
+            --cursor-hover-bg: rgba(168, 158, 141, 0.5);
+            --cursor-hover-border: #a89e8d; 
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f2f0eb;
+            color: #100c0b;
+            overflow-x: hidden;
+            cursor: none;
+            -webkit-font-smoothing: antialiased;
+            scroll-behavior: smooth;
+        }
+
+        #cursor {
+            width: 14px; height: 14px; 
+            border: 1.5px solid var(--cursor-border);
+            border-radius: 50%; position: fixed; 
+            pointer-events: none; z-index: 9999; 
+            transition: transform 0.15s ease-out, background 0.3s ease, border-color 0.3s ease;
+            transform: translate(-50%, -50%);
+        }
+
+        .grain {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0.05; z-index: 9998; pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3BaseFilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        .serif-alt { font-family: 'Playfair Display', serif; }
+
+        .reveal-up {
+            opacity: 0; transform: translateY(30px);
+            transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal-up.active { opacity: 1; transform: translateY(0); }
+
+        .hero-container { position: relative; background: #100c0b; height: 100vh; }
+        .hero-image {
+            position: absolute; inset: 0; width: 100%; height: 100%;
+            object-fit: cover; filter: grayscale(0.1) contrast(1.1) brightness(0.5);
+            z-index: 0;
+        }
+
+        .img-zoom-container { overflow: hidden; background: #100c0b; position: relative; cursor: pointer; }
+        .img-zoom-container img { 
+            transition: transform 2s cubic-bezier(0.16, 1, 0.3, 1), opacity 1.2s ease;
+            opacity: 0.85;
+        }
+        .img-zoom-container:hover img { transform: scale(1.05); opacity: 1; }
+
+        #gallery-modal {
+            position: fixed; inset: 0; background: #0a0908; z-index: 10000;
+            display: none; opacity: 0; transition: opacity 0.4s ease;
+            overflow-y: scroll; 
+        }
+        #gallery-modal.active { display: block; opacity: 1; }
+        
+        #lightbox {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 10001;
+            display: none; align-items: center; justify-content: center; padding: 20px;
+        }
+        #lightbox img { max-width: 95%; max-height: 90vh; object-fit: contain; }
+
+        .modal-image-card { background-color: #1a1817; min-height: 400px; }
+        
+        /* OVERHAULED JOURNAL STYLING */
+        .journal-grid {
+            display: flex;
+            gap: 1.5rem;
+            padding-bottom: 4rem;
+        }
+        .journal-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .journal-col:nth-child(even) {
+            padding-top: 5rem; /* The offset that creates the "Vogue" look */
+        }
+        .journal-item { 
+            position: relative; 
+            overflow: hidden; 
+            background: #1a1817; 
+            cursor: pointer;
+            width: 100%;
+        }
+        .journal-item img { 
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 1.2s cubic-bezier(0.19, 1, 0.22, 1), filter 0.8s ease;
+            filter: sepia(0.2) brightness(0.9);
+        }
+        .journal-item:hover img { 
+            transform: scale(1.08); 
+            filter: sepia(0) brightness(1); 
+        }
+        .journal-item::after {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(to bottom, transparent 60%, rgba(16, 12, 11, 0.4));
+            opacity: 0; transition: opacity 0.5s ease;
+        }
+        .journal-item:hover::after { opacity: 1; }
+    </style>
+</head>
+<body class="selection:bg-mulberry selection:text-cream">
+    <div id="cursor"></div>
+    <div class="grain"></div>
+
+    <div id="lightbox" onclick="this.style.display='none'">
+        <img id="lightbox-img" src="" alt="Full View">
+        <div class="absolute top-10 right-10 text-white text-[10px] uppercase tracking-[0.4em] cursor-pointer opacity-50 hover:opacity-100 transition-opacity">Close</div>
+    </div>
+
+    <!-- Album Modal System -->
+    <div id="gallery-modal">
+        <div class="p-6 md:p-20 max-w-7xl mx-auto min-h-screen">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-8">
+                <div id="modal-title-area">
+                    <p class="text-[10px] tracking-[0.6em] text-oak uppercase mb-2">Editorial Collection</p>
+                    <h2 id="modal-title" class="text-4xl md:text-6xl font-light tracking-tighter text-white uppercase serif-alt italic"></h2>
+                </div>
+                <button id="close-modal" class="text-[10px] tracking-[0.4em] uppercase text-white border border-white/20 px-10 py-5 rounded-full hover:bg-white hover:text-midnight transition-all">
+                    Exit Collection
+                </button>
+            </div>
+            <div id="modal-content" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10 pb-32"></div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <nav class="fixed top-0 left-0 w-full z-50 p-6 md:p-10 mix-blend-difference text-cream">
+        <div class="flex justify-between items-center">
+            <div class="flex flex-col">
+                <span class="text-xl md:text-2xl font-light tracking-[0.3em] uppercase leading-none text-white">Janith Gamage</span>
+                <span class="text-[9px] tracking-[0.4em] uppercase mt-2 opacity-90 font-medium text-oak">Fashion & Lifestyle</span>
+            </div>
+            <div class="hidden lg:flex gap-14 items-center text-[9px] uppercase tracking-[0.4em] font-medium">
+                <a href="#portfolio" class="nav-link relative">Collections</a>
+                <a href="#about" class="nav-link relative">Philosophy</a>
+                <a href="mailto:hello@janithgamage.com" class="nav-link relative">Contact</a>
+            </div>
+            <div class="text-[9px] tracking-widest uppercase border border-white/20 px-5 py-2.5 rounded-full hover:bg-mulberry transition-colors cursor-pointer">
+                Book Session
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero-container flex items-center px-6 md:px-20 relative overflow-hidden text-cream">
+        <img src="https://images.unsplash.com/photo-1496747611176-843222e1e57c?q=80&w=2073&auto=format&fit=crop" class="hero-image" alt="Fashion">
+        <div class="absolute inset-0 bg-gradient-to-t from-midnight via-transparent to-transparent opacity-80 z-10"></div>
+        <div class="max-w-7xl mx-auto w-full z-10 relative">
+            <p class="text-[10px] tracking-[0.8em] uppercase text-leather mb-10 reveal-up active">Visual Storyteller</p>
+            <h1 class="text-[12vw] md:text-[8vw] font-light leading-[0.9] mb-12 tracking-tighter reveal-up active">
+                Capturing <br><span class="serif-alt italic text-mulberry">Elegance.</span>
+            </h1>
+        </div>
+    </section>
+
+    <!-- Portfolio -->
+    <section id="portfolio" class="py-40 bg-cream px-6 md:px-20">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-24 reveal-up">
+                <div>
+                    <p class="text-[10px] tracking-[0.6em] text-mulberry uppercase mb-6">Featured Works</p>
+                    <h2 class="text-6xl md:text-[80px] font-light tracking-tighter leading-none">The <span class="serif-alt italic text-leather">Archive.</span></h2>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
+                <div class="reveal-up group" onclick="openGallery('Velvet & Dusk')">
+                    <div class="img-zoom-container aspect-[4/5] mb-8 shadow-2xl">
+                        <img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=1200" class="w-full h-full object-cover" alt="Velvet & Dusk">
+                    </div>
+                    <div class="flex justify-between items-start">
+                        <h3 class="text-2xl uppercase tracking-tighter font-light">Velvet & Dusk</h3>
+                        <span class="text-[10px] uppercase tracking-widest text-mulberry font-bold border-b border-mulberry pb-1">Series 01</span>
+                    </div>
+                </div>
+                <div class="reveal-up group md:mt-24" onclick="openGallery('Morning in Paris')">
+                    <div class="img-zoom-container aspect-[4/5] mb-8 shadow-2xl">
+                        <img src="https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&q=80&w=1200" class="w-full h-full object-cover" alt="Morning in Paris">
+                    </div>
+                    <div class="flex justify-between items-start">
+                        <h3 class="text-2xl uppercase tracking-tighter font-light">Morning in Paris</h3>
+                        <span class="text-[10px] uppercase tracking-widest text-mulberry font-bold border-b border-mulberry pb-1">Series 02</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PHILOSOPHY -->
+    <section id="about" class="py-32 bg-midnight text-cream px-6 md:px-20 border-y border-white/5">
+        <div class="max-w-5xl mx-auto text-center">
+            <p class="text-[10px] tracking-[0.8em] text-oak uppercase mb-16 reveal-up">The Philosophy</p>
+            <h2 class="text-3xl md:text-5xl font-light leading-snug reveal-up tracking-tight">
+                "Photography is not about documenting a <span class="serif-alt italic">subject</span>, but rather capturing the <span class="serif-alt italic text-oak">dialogue</span> between light, texture, and emotion."
+            </h2>
+            <p class="mt-12 text-sm tracking-widest text-leather reveal-up italic">— JANITH GAMAGE</p>
+        </div>
+    </section>
+
+    <!-- RE-DESIGNED DAILY JOURNAL MASONRY -->
+    <section class="py-40 bg-cream px-6 md:px-20 overflow-hidden">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-24 gap-6 reveal-up">
+                <div class="text-center md:text-left">
+                    <p class="text-[10px] tracking-[0.6em] text-mulberry uppercase mb-2">Personal Curations</p>
+                    <h2 class="text-5xl font-light tracking-tighter uppercase serif-alt italic">Daily Journal</h2>
+                </div>
+                <a href="#" class="text-[10px] tracking-[0.5em] font-bold uppercase border-b-2 border-midnight pb-2 hover:text-mulberry hover:border-mulberry transition-all">Visit Instagram</a>
+            </div>
+            
+            <!-- Masonry-style Grid -->
+            <div class="journal-grid">
+                <!-- Col 1 -->
+                <div class="journal-col">
+                    <div class="journal-item aspect-[4/5] reveal-up">
+                        <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800" alt="Fashion">
+                    </div>
+                    <div class="journal-item aspect-[1/1] reveal-up">
+                        <img src="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=800" alt="Texture">
+                    </div>
+                </div>
+                <!-- Col 2 (Offset) -->
+                <div class="journal-col">
+                    <div class="journal-item aspect-[3/4] reveal-up">
+                        <img src="https://images.unsplash.com/photo-1539109132304-39155021aa39?q=80&w=800" alt="Editorial">
+                    </div>
+                    <div class="journal-item aspect-[4/5] reveal-up">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800" alt="Model">
+                    </div>
+                </div>
+                <!-- Col 3 -->
+                <div class="journal-col hidden md:flex">
+                    <div class="journal-item aspect-[1/1] reveal-up">
+                        <img src="https://images.unsplash.com/photo-1445205170230-053b830c6050?q=80&w=800" alt="Detail">
+                    </div>
+                    <div class="journal-item aspect-[3/4] reveal-up">
+                        <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?q=80&w=800" alt="Light">
+                    </div>
+                </div>
+                <!-- Col 4 (Offset) -->
+                <div class="journal-col hidden md:flex">
+                    <div class="journal-item aspect-[4/5] reveal-up">
+                        <img src="https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=800" alt="Style">
+                    </div>
+                    <div class="journal-item aspect-[1/1] reveal-up">
+                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=800" alt="Face">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- BIG CALL TO ACTION -->
+    <section class="relative h-[80vh] flex items-center justify-center bg-midnight overflow-hidden">
+        <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=2070" class="absolute inset-0 w-full h-full object-cover opacity-20 grayscale" alt="Contact Bg">
+        <div class="z-10 text-center px-6 reveal-up">
+            <h2 class="text-white text-5xl md:text-8xl font-light tracking-tighter mb-10">Let's create <br><span class="serif-alt italic text-oak">something.</span></h2>
+            <a href="mailto:hello@janithgamage.com" class="inline-block text-[10px] tracking-[0.5em] uppercase text-white border border-white/30 px-12 py-6 rounded-full hover:bg-white hover:text-midnight transition-all">Start a Conversation</a>
+        </div>
+    </section>
+
+    <footer class="bg-midnight text-cream py-20 px-6 md:px-20 border-t border-white/5">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-12">
+                <div class="flex flex-col items-center md:items-start">
+                    <span class="text-xl font-light tracking-[0.3em] uppercase">Janith Gamage</span>
+                    <span class="text-[9px] tracking-[0.4em] uppercase text-oak mt-2">© 2026 Archive</span>
+                </div>
+                <div class="flex gap-10 text-[9px] tracking-[0.3em] uppercase text-leather">
+                    <a href="#" class="hover:text-white transition-colors">Instagram</a>
+                    <a href="#" class="hover:text-white transition-colors">Behance</a>
+                    <a href="#" class="hover:text-white transition-colors">LinkedIn</a>
+                </div>
+                <a href="mailto:hello@janithgamage.com" class="text-sm tracking-widest hover:text-oak transition-colors font-light">hello@janithgamage.com</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const cursor = document.getElementById('cursor');
+        const modal = document.getElementById('gallery-modal');
+        const modalContent = document.getElementById('modal-content');
+        const modalTitle = document.getElementById('modal-title');
+        const closeModalBtn = document.getElementById('close-modal');
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+
+        const galleryData = {
+            'Velvet & Dusk': [
+                'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1200',
+                'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200',
+                'https://images.unsplash.com/photo-1539109132304-39155021aa39?q=80&w=1200',
+                'https://images.unsplash.com/photo-1445205170230-053b830c6050?q=80&w=1200',
+                'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=1200'
+            ],
+            'Morning in Paris': [
+                'https://images.unsplash.com/photo-1469334031218-e382a71b716b?q=80&w=1200',
+                'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=1200',
+                'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1200',
+                'https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?q=80&w=1200'
+            ]
+        };
+
+        function openGallery(title) {
+            modalTitle.innerText = title;
+            modalContent.innerHTML = ''; 
+            modal.style.display = 'block';
+            modal.scrollTop = 0;
+            
+            galleryData[title].forEach((src) => {
+                const card = document.createElement('div');
+                card.className = 'modal-image-card group relative cursor-pointer overflow-hidden';
+                card.innerHTML = `<img src="${src}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="eager">`;
+                card.onclick = (e) => {
+                    e.stopPropagation();
+                    lightboxImg.src = src;
+                    lightbox.style.display = 'flex';
+                };
+                modalContent.appendChild(card);
+            });
+
+            setTimeout(() => { modal.classList.add('active'); document.body.style.overflow = 'hidden'; }, 30);
+        }
+
+        closeModalBtn.onclick = () => {
+            modal.classList.remove('active');
+            setTimeout(() => { modal.style.display = 'none'; document.body.style.overflow = 'auto'; }, 400);
+        };
+
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('active');
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal-up').forEach(item => observer.observe(item));
+
+        document.body.addEventListener('mouseover', (e) => {
+            if (e.target.closest('a, button, .img-zoom-container, .modal-image-card, .journal-item')) {
+                cursor.style.transform = 'scale(4)';
+                cursor.style.background = 'var(--cursor-hover-bg)';
+                cursor.style.borderColor = 'var(--cursor-hover-border)';
+            }
+        });
+
+        document.body.addEventListener('mouseout', (e) => {
+            if (e.target.closest('a, button, .img-zoom-container, .modal-image-card, .journal-item')) {
+                cursor.style.transform = 'scale(1)';
+                cursor.style.background = 'transparent';
+                cursor.style.borderColor = 'var(--cursor-border)';
+            }
+        });
+    </script>
+</body>
+</html>
